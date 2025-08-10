@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+langchain
+langchain-experimental
+langchain-community
+langchain-core
+pydantic
