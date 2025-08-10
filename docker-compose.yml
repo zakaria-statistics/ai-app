@@ -20,7 +20,7 @@ services:
 
   agent:
     build:
-      context: .
+      context: ./back
       dockerfile: Dockerfile
     image: agent-back:1.0.0
     container_name: agent-llm
@@ -35,7 +35,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: ./front
       dockerfile: Dockerfile
     image: agent-front:1.0.0
     container_name: agent-frontend

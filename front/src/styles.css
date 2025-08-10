@@ -1,0 +1,66 @@
+:root {
+    --maxw: 880px;
+}
+
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    margin: 0;
+}
+
+.container {
+    padding: 20px;
+    max-width: var(--maxw);
+    margin: 0 auto;
+}
+
+.input {
+    width: 100%;
+    padding: 8px;
+    resize: vertical;
+}
+
+.buttons {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+button {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-stop {
+    background: #eee;
+}
+
+.status {
+    margin-top: 8px;
+}
+
+.error {
+    color: #c62828;
+    margin-top: 8px;
+}
+
+.response {
+    margin-top: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 120px;
+}
+
+.response-body {
+    margin-top: 8px;
+    white-space: pre-wrap;
+}
