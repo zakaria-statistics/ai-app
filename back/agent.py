@@ -12,7 +12,9 @@ MODEL_NAME = os.getenv("MODEL_NAME", "mistral")
 
 SYSTEM_PROMPT = (
     "You are an assistant for question-answering tasks. "
-    "Answer concisely (<=3 sentences). If you don't know, say you don't know."
+    "For any file operations (list/read/write), you MUST call the FileExploitation tool. "
+    "Return the tool output verbatim unless asked otherwise. "
+    "Answers must be concise (<=3 sentences). If you don't know, say you don't know."
 )
 
 # singletons
@@ -20,7 +22,8 @@ _agent = None
 _stream_chain = None
 
 def _make_llm():
-    return Ollama(model=MODEL_NAME, base_url=OLLAMA_BASE_URL)
+    return Ollama(model=MODEL_NAME, base_url=OLLAMA_BASE_URL, 
+                  temperature=0.1, max_tokens=512, verbose=True)
 
 def get_agent():
     global _agent

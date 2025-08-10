@@ -10,6 +10,7 @@ export async function ask(prompt) {
     if (!res.ok) {
         let detail = "Unknown error";
         try { detail = (await res.json()).detail || detail; } catch { }
+        console.error("API error:", detail);
         throw new Error(detail);
     }
     const data = await res.json();

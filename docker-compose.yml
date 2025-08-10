@@ -25,7 +25,7 @@ services:
     image: agent-back:1.0.0
     container_name: agent-llm
     ports:
-      - "8001:8000"
+      - "8000:8000"
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
     depends_on:
@@ -38,7 +38,7 @@ services:
       context: ./front
       dockerfile: Dockerfile
     image: agent-front:1.0.0
-    container_name: agent-frontend
+    container_name: agent-front
     ports:
       - "3003:80"
     depends_on:

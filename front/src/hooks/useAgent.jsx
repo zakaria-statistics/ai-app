@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from "react";
-import { ask, askStream } from "../lib/api";
+import { ask, askStream } from "../libs/api";
 
 export function useAgent() {
     const [response, setResponse] = useState("");
