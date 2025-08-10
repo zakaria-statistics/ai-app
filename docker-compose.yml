@@ -23,7 +23,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: agent-back:1.0.0
-    container_name: local-agent
+    container_name: agent-llm
     ports:
       - "8001:8000"
     environment:
