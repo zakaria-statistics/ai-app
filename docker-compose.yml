@@ -1,0 +1,49 @@
+services:
+
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11432:11434"
+    restart: unless-stopped
+    volumes:
+      - ollama:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: agent-back:1.0.0
+    container_name: local-agent
+    ports:
+      - "8001:8000"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - ollama
+    restart: unless-stopped
+
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: agent-front:1.0.0
+    container_name: agent-frontend
+    ports:
+      - "3003:80"
+    depends_on:
+      - agent
+    restart: unless-stopped
+
+volumes:
+  ollama:
