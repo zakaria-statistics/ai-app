@@ -1,0 +1,69 @@
+name: Backend CI/CD
+
+on:
+  push:
+    paths:
+      - "back/**"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "back/**"
+      - ".github/workflows/backend.yml"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE_NAME: agent-backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image to GHCR
+        env:
+          IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/agent-backend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          SHORT_SHA=${IMAGE_TAG::7}
+          docker build -t $IMAGE_REPO:$SHORT_SHA -t $IMAGE_REPO:latest ./back
+          docker push $IMAGE_REPO:$SHORT_SHA
+          docker push $IMAGE_REPO:latest
+          echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
+
+      - name: Setup kubectl
+        uses: kubeadmin/kubectl-action@v2
+        with:
+          kubectl_version: latest
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          context: ${{ secrets.KUBE_CONTEXT }}
+          namespace: ai-stack
+
+      # Optional: first-time apply (idempotent)
+      # - name: Apply backend manifests
+      #   run: |
+      #     kubectl apply -f kube/deploy-agent.yaml
+      #     kubectl apply -f kube/svc-agent.yaml
+
+      - name: Update Deployment image & rollout
+        env:
+          IMG: ${{ env.IMAGE_FULL }}
+        run: |
+          # Assumes deployment name = 'agent', container name = 'agent'
+          kubectl -n ai-stack set image deployment/agent agent=$IMG
+          kubectl -n ai-stack rollout status deployment/agent --timeout=120s
+          kubectl -n ai-stack get pods -l app=agent -o wide

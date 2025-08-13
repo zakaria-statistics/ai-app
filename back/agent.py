@@ -23,7 +23,7 @@ _stream_chain = None
 
 def _make_llm():
     return Ollama(model=MODEL_NAME, base_url=OLLAMA_BASE_URL, 
-                  temperature=0.1, max_tokens=512, verbose=True)
+                  temperature=0.1, verbose=True)
 
 def get_agent():
     global _agent

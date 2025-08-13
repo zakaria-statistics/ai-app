@@ -1,0 +1,71 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    paths:
+      - "front/**"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    paths:
+      - "front/**"
+      - ".github/workflows/frontend.yml"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE_NAME: agent-frontend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push image to GHCR
+        env:
+          IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/agent-frontend
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          SHORT_SHA=${IMAGE_TAG::7}
+          # Add both a short-sha tag and "latest" for convenience
+          docker build -t $IMAGE_REPO:$SHORT_SHA -t $IMAGE_REPO:latest ./front
+          docker push $IMAGE_REPO:$SHORT_SHA
+          docker push $IMAGE_REPO:latest
+          echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
+
+      # kubectl setup (uses your secrets; same pattern as backend)
+      - name: Setup kubectl
+        uses: kubeadmin/kubectl-action@v2
+        with:
+          kubectl_version: latest
+          kubeconfig: ${{ secrets.KUBECONFIG }}
+          context: ${{ secrets.KUBE_CONTEXT }}
+          namespace: ai-stack
+
+      # Optional first-time apply (idempotent)
+      # - name: Apply frontend manifests
+      #   run: |
+      #     kubectl apply -f kube/deploy-frontend.yaml
+      #     kubectl apply -f kube/svc-frontend.yaml
+
+      - name: Update Deployment image & rollout
+        env:
+          IMG: ${{ env.IMAGE_FULL }}
+        run: |
+          # Assumes deployment name = 'front', container name = 'front'
+          kubectl -n ai-stack set image deployment/front front=$IMG
+          kubectl -n ai-stack rollout status deployment/front --timeout=120s
+          kubectl -n ai-stack get pods -l app=front -o wide
