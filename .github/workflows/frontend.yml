@@ -51,7 +51,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.VM_HOST }}
-          port: ${{ secrets.VM_PORT }} # e.g., 2222
+          port: 2222 # e.g., 2222
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
