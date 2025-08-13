@@ -46,26 +46,24 @@ jobs:
           docker push $IMAGE_REPO:latest
           echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
 
-      # kubectl setup (uses your secrets; same pattern as backend)
-      - name: Setup kubectl
-        uses: kubeadmin/kubectl-action@v2
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
         with:
-          kubectl_version: latest
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-          context: ${{ secrets.KUBE_CONTEXT }}
-          namespace: ai-stack
+          version: latest
 
-      # Optional first-time apply (idempotent)
-      # - name: Apply frontend manifests
-      #   run: |
-      #     kubectl apply -f kube/deploy-frontend.yaml
-      #     kubectl apply -f kube/svc-frontend.yaml
-
-      - name: Update Deployment image & rollout
-        env:
-          IMG: ${{ env.IMAGE_FULL }}
+      - name: Configure kubeconfig
+        shell: bash
         run: |
-          # Assumes deployment name = 'front', container name = 'front'
-          kubectl -n ai-stack set image deployment/front front=$IMG
-          kubectl -n ai-stack rollout status deployment/front --timeout=120s
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+          if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
+            kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
+          fi
+
+      - name: Update Deployment and image & rollout
+        shell: bash
+        run: |
+          kubectl set image deployment/agent -n ai-stack agent=${{ env.IMAGE_FULL }}
+          kubectl rollout status deployment/agent -n ai-stack
           kubectl -n ai-stack get pods -l app=front -o wide
