@@ -61,9 +61,9 @@ jobs:
             kubectl config current-context || true
             kubectl cluster-info || true
             # Update Deployment and image & rollout
-            kubectl set image deployment/agent -n ai-stack agent=${{ env.IMAGE_FULL }}
-            kubectl rollout status deployment/agent -n ai-stack
-            kubectl -n ai-stack get pods -l app=agent -o wide
+            kubectl set image deployment/front -n ai-stack front=${{ env.IMAGE_FULL }}
+            kubectl rollout status deployment/front -n ai-stack
+            kubectl -n ai-stack get pods -l app=front -o wide
 
       # - name: Install kubectl
       #   uses: azure/setup-kubectl@v4
