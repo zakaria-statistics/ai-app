@@ -24,26 +24,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Log in to GitHub Container Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & push image to GHCR
-        env:
-          IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/agent-backend
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          SHORT_SHA=${IMAGE_TAG::7}
-          docker build -t $IMAGE_REPO:$SHORT_SHA -t $IMAGE_REPO:latest ./back
-          docker push $IMAGE_REPO:$SHORT_SHA
-          docker push $IMAGE_REPO:latest
-          echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
+      # - name: Build & push image to GHCR
+      #   env:
+      #     IMAGE_REPO: ghcr.io/${{ github.repository_owner }}/agent-backend
+      #     IMAGE_TAG: ${{ github.sha }}
+      #   run: |
+      #     SHORT_SHA=${IMAGE_TAG::7}
+      #     docker build -t $IMAGE_REPO:$SHORT_SHA -t $IMAGE_REPO:latest ./back
+      #     docker push $IMAGE_REPO:$SHORT_SHA
+      #     docker push $IMAGE_REPO:latest
+      #     echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
 
       # Roll out on your VM (where kubectl already works)
       # - name: Rollout via SSH on VM
@@ -76,7 +76,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p $HOME/.kube
-          cat <<EOF > $HOME/.kube/config ${{ secrets.KUBE_CONFIG }}
+          printf "%s" "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
           if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
             kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
