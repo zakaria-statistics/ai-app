@@ -78,9 +78,8 @@ jobs:
           mkdir -p $HOME/.kube
           printf "%s" "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
           chmod 600 $HOME/.kube/config
-          if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
-            kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
-          fi
+          kubectl config current-context || true
+          kubectl cluster-info || true
 
       - name: Update Deployment image & rollout
         run: |
