@@ -74,7 +74,7 @@ jobs:
         shell: bash
         run: |
           mkdir -p $HOME/.kube
-          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+          cat <<EOF > $HOME/.kube/config ${{ secrets.KUBE_CONFIG }}
           chmod 600 $HOME/.kube/config
           if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
             kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
