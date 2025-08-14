@@ -72,14 +72,16 @@ jobs:
         with:
           version: latest
 
-      - name: Configure kubeconfig
+      - name: Configure kubeconfig (raw YAML)
         shell: bash
         run: |
-          mkdir -p $HOME/.kube
-          printf "%s" "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
-          chmod 600 $HOME/.kube/config
-          kubectl config current-context || true
-          kubectl cluster-info || true
+          set -Eeuo pipefail
+          mkdir -p "$HOME/.kube"
+          printf '%s' "${{ secrets.KUBE_CONFIG }}" > "$HOME/.kube/config"
+          sed -i 's/\r$//' "$HOME/.kube/config"   # fix CRLF if needed
+          chmod 600 "$HOME/.kube/config"
+          echo "Contexts:"; kubectl config get-contexts -o name
+          echo "Current:"; kubectl config current-context || true
 
       - name: Update Deployment image & rollout
         run: |
