@@ -47,42 +47,42 @@ jobs:
           echo "IMAGE_FULL=$IMAGE_REPO:$SHORT_SHA" >> $GITHUB_ENV
 
       # Roll out on your VM (where kubectl already works)
-      - name: Rollout via SSH on VM
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.VM_HOST }}
-          port: 2222 # e.g., 2222
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            set -Eeuo pipefail
-            echo "Using image: ${{ env.IMAGE_FULL }}"
-            # Optional: show current context/cluster
-            kubectl config current-context || true
-            kubectl cluster-info || true
-            # Update Deployment and image & rollout
-            kubectl set image deployment/front -n ai-stack front=${{ env.IMAGE_FULL }}
-            kubectl rollout status deployment/front -n ai-stack
-            kubectl -n ai-stack get pods -l app=front -o wide
-
-      # - name: Install kubectl
-      #   uses: azure/setup-kubectl@v4
+      # - name: Rollout via SSH on VM
+      #   uses: appleboy/ssh-action@v0.1.6
       #   with:
-      #     version: latest
+      #     host: ${{ secrets.VM_HOST }}
+      #     port: 2222 # e.g., 2222
+      #     username: ${{ secrets.VM_USER }}
+      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     script: |
+      #       set -Eeuo pipefail
+      #       echo "Using image: ${{ env.IMAGE_FULL }}"
+      #       # Optional: show current context/cluster
+      #       kubectl config current-context || true
+      #       kubectl cluster-info || true
+      #       # Update Deployment and image & rollout
+      #       kubectl set image deployment/front -n ai-stack front=${{ env.IMAGE_FULL }}
+      #       kubectl rollout status deployment/front -n ai-stack
+      #       kubectl -n ai-stack get pods -l app=front -o wide
 
-      # - name: Configure kubeconfig
-      #   shell: bash
-      #   run: |
-      #     mkdir -p $HOME/.kube
-      #     echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
-      #     chmod 600 $HOME/.kube/config
-      #     if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
-      #       kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
-      #     fi
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
 
-      # - name: Update Deployment and image & rollout
-      #   shell: bash
-      #   run: |
-      #     kubectl set image deployment/agent -n ai-stack agent=${{ env.IMAGE_FULL }}
-      #     kubectl rollout status deployment/agent -n ai-stack
-      #     kubectl -n ai-stack get pods -l app=front -o wide
+      - name: Configure kubeconfig
+        shell: bash
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
+          chmod 600 $HOME/.kube/config
+          if [ -n "${{ secrets.KUBE_CONTEXT }}" ]; then
+            kubectl config use-context ${{ secrets.KUBE_CONTEXT }}
+          fi
+
+      - name: Update Deployment and image & rollout
+        shell: bash
+        run: |
+          kubectl set image deployment/agent -n ai-stack agent=${{ env.IMAGE_FULL }}
+          kubectl rollout status deployment/agent -n ai-stack
+          kubectl -n ai-stack get pods -l app=front -o wide
